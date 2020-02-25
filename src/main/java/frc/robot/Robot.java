@@ -267,7 +267,6 @@ else{
 
 
 void trolley(){
-//test1 = controller.getRawButton(1);
 rightTrolley = controller.getRawAxis(3);
 leftTrolley = controller.getRawAxis(2);
 

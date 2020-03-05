@@ -49,12 +49,14 @@ public class Robot extends TimedRobot {
   double unicornStrt;
   double test2;
 
-  boolean intakeSys;
+  boolean intakeSysR;
+  boolean outsysR;
   boolean climbUp;
   boolean climbdown;
   boolean shooter;
   boolean test1;
-
+  boolean conveytorSysIn;
+  boolean conveytorsysOut;
   String colorString;
 
  // all declarations
@@ -78,21 +80,21 @@ private final Color kYellowTarget = ColorMatch.makeColor(0.361, 0.524, 0.113);
   // to move
   // back and forth on pendulum
   //will need to change these due to wiring issues please check!!!!! 2/23/2020 
-  VictorSPX frontLeft = new VictorSPX(0);
+  VictorSPX frontLeft = new VictorSPX(5);
   VictorSPX rearLeft = new VictorSPX(1);
-  VictorSPX frontRight = new VictorSPX(2);
-  VictorSPX rearRight = new VictorSPX(3);
-  VictorSPX trolleyPrt = new VictorSPX(4);
-  VictorSPX climbPrt1 = new VictorSPX(5);
-  VictorSPX climbPrt2 = new VictorSPX(6);
+  VictorSPX frontRight = new VictorSPX(6);
+  VictorSPX rearRight = new VictorSPX(7);
+  VictorSPX trolleyPrt = new VictorSPX(3);
+  VictorSPX climbPrt1 = new VictorSPX(11);
+  VictorSPX climbPrt2 = new VictorSPX(2);
 
   // all of these are assigned to the second controller, includ es: intake system,
   // Shooter, and unicorn horn
-  VictorSPX intakeLft = new VictorSPX(7);
-  VictorSPX intakeRght = new VictorSPX(8);
-  VictorSPX intakeDwnCntr = new VictorSPX(9);
-  VictorSPX shtrRight = new VictorSPX(10);
-  VictorSPX shtrLeft = new VictorSPX(11);
+  VictorSPX convey1 = new VictorSPX(4);
+  VictorSPX convey2 = new VictorSPX(9);
+  VictorSPX intakeRoller = new VictorSPX(10);
+  VictorSPX shtrRight = new VictorSPX(8);
+  VictorSPX shtrLeft = new VictorSPX(0);
   VictorSPX unicorn = new VictorSPX(12);
 
   // these speed controller groups make it so that both motor controllers listed
@@ -333,8 +335,8 @@ void shooter(){
 
   if(shooter==true){
 
-    shtrLeft.set(ControlMode.PercentOutput,0.5);
-    shtrRight.set(ControlMode.PercentOutput,0.5);
+    shtrLeft.set(ControlMode.PercentOutput,1);
+    shtrRight.set(ControlMode.PercentOutput,1);
 
   }
 else{
@@ -351,32 +353,66 @@ else{
 
 
 
-void intakeSytm(){
+void roller(){
 
-intakeSys = controller2.getRawButton(2);// button B is used; i set it to 1 variable becasue once the button is clicked, all 3 motors will be activated at the same time right
+intakeSysR = controller2.getRawButton(1);
+outsysR = controller2.getRawButton(4);
+// button B is used; i set it to 1 variable becasue once the button is clicked, all 3 motors will be activated at the same time right
 //angela: yes it should be only one variable for all 3 :) 
 
-if(intakeSys == true){
+if(intakeSysR == true){
 
-  intakeDwnCntr.set(ControlMode.PercentOutput,0.5);
-  intakeLft.set(ControlMode.PercentOutput,0.5);
-  intakeRght.set(ControlMode.PercentOutput,0.5);
+  intakeRoller.set(ControlMode.PercentOutput,-0.5);
+  //intakeLft.set(ControlMode.PercentOutput,0.5);
+  //intakeRght.set(ControlMode.PercentOutput,0.5);
 
 }
-else if(intakeSys == false){
+else if(outsysR == false){
 
-  intakeDwnCntr.set(ControlMode.PercentOutput,0);
-  intakeLft.set(ControlMode.PercentOutput,0);
-  intakeRght.set(ControlMode.PercentOutput,0);
+  intakeRoller.set(ControlMode.PercentOutput,0);
+  //intakeLft.set(ControlMode.PercentOutput,0);
+  //intakeRght.set(ControlMode.PercentOutput,0);
 
 }
 else{
 
-  intakeDwnCntr.set(ControlMode.PercentOutput,0);
-  intakeLft.set(ControlMode.PercentOutput,0);
-  intakeRght.set(ControlMode.PercentOutput,0);
+  intakeRoller.set(ControlMode.PercentOutput,0);
+  //intakeLft.set(ControlMode.PercentOutput,0);
+  //intakeRght.set(ControlMode.PercentOutput,0);
      
 }
+
+}
+
+
+void conveytor(){
+
+  conveytorSysIn = controller2.getRawButton(2);
+  conveytorsysOut = controller2.getRawButton(3);
+  // button B is used; i set it to 1 variable becasue once the button is clicked, all 3 motors will be activated at the same time right
+  //angela: yes it should be only one variable for all 3 :) 
+  
+  if(conveytorSysIn == true){
+  
+    
+    convey1.set(ControlMode.PercentOutput,0.5);
+    convey2.set(ControlMode.PercentOutput,0.5);
+  
+  }
+  else if(conveytorsysOut == false){
+  
+   
+      convey1.set(ControlMode.PercentOutput,0);
+      convey2.set(ControlMode.PercentOutput,0);
+    convey1.set(ControlMode.PercentOutput,0);
+    convey2.set(ControlMode.PercentOutput,0);
+       
+  }
+
+
+
+
+
 
 }
 
@@ -483,7 +519,8 @@ else{
     trolley();
     unicorn();
     shooter();
-    intakeSytm();//sorry to make a procedure name so similar to another variable name
+    roller();
+    conveytor();
   }
 
   /**
@@ -496,6 +533,7 @@ else{
     trolley();
     unicorn();
     shooter();
-    intakeSytm();
+    roller();
+    conveytor();
   }
 }

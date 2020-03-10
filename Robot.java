@@ -6,7 +6,7 @@
 /*----------------------------------------------------------------------------*/
 
 package frc.robot;
-
+//3/5/20 push
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.ColorMatch;
@@ -23,10 +23,11 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
-
+//import edu.wpi.first.wpilibj.Timer;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -44,17 +45,22 @@ public class Robot extends TimedRobot {
 //all global vars, double for deci, boolean for binary, string for word 
   double rightTog;
   double leftTog;
-  double rightTrolley;
-  double leftTrolley;
-  double unicornStrt;
+  double sideTrolley;
+  double unicornLeft;
+  double unicornRight;
   double test2;
+  double rollerout;
+  double climbSet;
+  double intakeSysR;
+  double timing;
 
-  boolean intakeSys;
-  boolean climbUp;
-  boolean climbdown;
+  Timer timer;
+  
+  boolean outsysR;
   boolean shooter;
   boolean test1;
-
+  boolean conveytorSysIn;
+  boolean conveytorsysOut;
   String colorString;
 
  // all declarations
@@ -78,22 +84,22 @@ private final Color kYellowTarget = ColorMatch.makeColor(0.361, 0.524, 0.113);
   // to move
   // back and forth on pendulum
   //will need to change these due to wiring issues please check!!!!! 2/23/2020 
-  VictorSPX frontLeft = new VictorSPX(2);
-  VictorSPX rearLeft = new VictorSPX(3);
-  VictorSPX frontRight = new VictorSPX(7);
-  VictorSPX rearRight = new VictorSPX(8);
-  VictorSPX trolleyPrt = new VictorSPX(11);
-  VictorSPX climbPrt1 = new VictorSPX(5);
-  VictorSPX climbPrt2 = new VictorSPX(9);
+  VictorSPX frontLeft = new VictorSPX(5);
+  VictorSPX rearLeft = new VictorSPX(1);
+  VictorSPX frontRight = new VictorSPX(6);
+  VictorSPX rearRight = new VictorSPX(7);
+  VictorSPX trolleyPrt = new VictorSPX(3);
+  VictorSPX climbPrt1 = new VictorSPX(11);
+  VictorSPX climbPrt2 = new VictorSPX(2);
 
   // all of these are assigned to the second controller, includ es: intake system,
   // Shooter, and unicorn horn
-  VictorSPX intakeLft = new VictorSPX(4);
-  VictorSPX intakeRght = new VictorSPX(12);
-  VictorSPX intakeDwnCntr = new VictorSPX(10);
-  VictorSPX shtrRight = new VictorSPX(6);
+  VictorSPX convey1 = new VictorSPX(4);
+  VictorSPX convey2 = new VictorSPX(9);
+  VictorSPX intakeRoller = new VictorSPX(10);
+  VictorSPX shtrRight = new VictorSPX(8);
   VictorSPX shtrLeft = new VictorSPX(0);
-  VictorSPX unicorn = new VictorSPX(1);
+  VictorSPX unicorn = new VictorSPX(12);
 
   // these speed controller groups make it so that both motor controllers listed
   // are given the same input in any function used, if one is set at one speed,
@@ -223,16 +229,45 @@ private final Color kYellowTarget = ColorMatch.makeColor(0.361, 0.524, 0.113);
 		frontRight.set(ControlMode.PercentOutput,0);
 
   }
+
+
+  void unicorn(){
+
+
+    unicornLeft = controller.getRawAxis(3); 
+    unicornRight = controller.getRawAxis(2);
+
+    
+    if(unicornLeft >= 0.5){
+    
+    unicorn.set(ControlMode.PercentOutput,0.5);
+    
+    }
+   
+    else if(unicornRight >= 0.5){
+    
+      unicorn.set(ControlMode.PercentOutput,-0.5);
   
+      }
+    
+    else{
+    
+    unicorn.set(ControlMode.PercentOutput,0);
 
-  
+    }
+    
+    
+    }
+    
 
-void climbsys(){
 
-climbUp = controller.getRawButton(3);
-climbdown = controller.getRawButton(1);
 
-if(climbUp == true){
+  void climbsys() {
+
+climbSet = controller.getRawAxis(5);
+
+
+if(climbSet >= 0.1){
 
 climbPrt1.set(ControlMode.PercentOutput,0.5);
 climbPrt2.set(ControlMode.PercentOutput,0.5);
@@ -241,7 +276,7 @@ climbPrt2.set(ControlMode.PercentOutput,0.5);
 
 }
 
-else if(climbdown==true){
+else if(climbSet  <= 0.1){
 
   climbPrt1.set(ControlMode.PercentOutput,-0.5);
   climbPrt2.set(ControlMode.PercentOutput,-0.5);
@@ -256,23 +291,21 @@ else{
   
 
 
-
-}
-
-
-
 }
 
 
 
 
+
+
+
+/*
 void trolley(){
-//test1 = controller.getRawButton(1);
-rightTrolley = controller.getRawAxis(3);
-leftTrolley = controller.getRawAxis(2);
+sideTrolley = controller2.getRawAxis(0);
 
 
-if(rightTrolley >= 0.1 ){
+
+if(sideTrolley >= 0.1 ){
 
   trolleyPrt.set(ControlMode.PercentOutput,0.75);
   
@@ -280,7 +313,7 @@ if(rightTrolley >= 0.1 ){
 
 
 }
-else if(leftTrolley >= 0.1 ){
+else if(leftTrolley <= 0.1 ){
 
   trolleyPrt.set(ControlMode.PercentOutput,-0.75);
 
@@ -293,35 +326,11 @@ else{
 
 }
 
-
 }
 
-void unicorn(){
+*/
 
 
-unicornStrt = controller2.getRawAxis(3) * 0.5; 
-
-if(unicornStrt >= 0.5){
-
-unicorn.set(ControlMode.PercentOutput,unicornStrt);
-
-}
-//might not need this else if, keep for right now 
-else if(unicornStrt <= 0.5 ){
-
-  unicorn.set(ControlMode.PercentOutput,unicornStrt* 0.25);
-
-
-
-
-}
-
-else{
-
-unicorn.set(ControlMode.PercentOutput,0);
-
-
-}
 
 
 
@@ -335,15 +344,15 @@ void shooter(){
 
   if(shooter==true){
 
-    shtrLeft.set(ControlMode.PercentOutput,0.5);
-    shtrRight.set(ControlMode.PercentOutput,0.5);
-
+    shtrLeft.set(ControlMode.PercentOutput,1);
+    shtrRight.set(ControlMode.PercentOutput,-1);
+    
   }
 else{
 
   shtrLeft.set(ControlMode.PercentOutput,0);
   shtrRight.set(ControlMode.PercentOutput,0);
-
+  
 
 
 }
@@ -353,34 +362,90 @@ else{
 
 
 
-void intakeSytm(){
+void roller(){
 
-intakeSys = controller2.getRawButton(2);// button B is used; i set it to 1 variable becasue once the button is clicked, all 3 motors will be activated at the same time right
+intakeSysR = controller2.getRawAxis(3);
+outsysR = controller2.getRawButton(6);
+// button B is used; i set it to 1 variable becasue once the button is clicked, all 3 motors will be activated at the same time right
 //angela: yes it should be only one variable for all 3 :) 
 
-if(intakeSys == true){
+if(intakeSysR >= 0.1){
 
-  intakeDwnCntr.set(ControlMode.PercentOutput,0.5);
-  intakeLft.set(ControlMode.PercentOutput,0.5);
-  intakeRght.set(ControlMode.PercentOutput,0.5);
+  intakeRoller.set(ControlMode.PercentOutput,-0.5);
+  //intakeLft.set(ControlMode.PercentOutput,0.5);
+  //intakeRght.set(ControlMode.PercentOutput,0.5);
 
 }
-else if(intakeSys == false){
+else if(outsysR == true){
 
-  intakeDwnCntr.set(ControlMode.PercentOutput,0);
-  intakeLft.set(ControlMode.PercentOutput,0);
-  intakeRght.set(ControlMode.PercentOutput,0);
+  intakeRoller.set(ControlMode.PercentOutput,0.5);
+  //intakeLft.set(ControlMode.PercentOutput,0);
+  //intakeRght.set(ControlMode.PercentOutput,0);
 
 }
 else{
 
-  intakeDwnCntr.set(ControlMode.PercentOutput,0);
-  intakeLft.set(ControlMode.PercentOutput,0);
-  intakeRght.set(ControlMode.PercentOutput,0);
+  intakeRoller.set(ControlMode.PercentOutput,0);
+  //intakeLft.set(ControlMode.PercentOutput,0);
+  //intakeRght.set(ControlMode.PercentOutput,0);
      
 }
 
 }
+
+
+void conveytor(){
+
+  conveytorSysIn = controller2.getRawButton(2);
+  conveytorsysOut = controller2.getRawButton(3);
+  // button B is used; i set it to 1 variable becasue once the button is clicked, all 3 motors will be activated at the same time right
+  //angela: yes it should be only one variable for all 3 :) 
+  
+  if(conveytorSysIn == true){
+  
+    
+    convey1.set(ControlMode.PercentOutput,0.5);
+    convey2.set(ControlMode.PercentOutput,0.5);
+  
+  }
+  else if(conveytorsysOut == false){
+  
+   
+      convey1.set(ControlMode.PercentOutput,0);
+      convey2.set(ControlMode.PercentOutput,0);
+       
+  }
+
+
+
+
+
+
+}
+
+
+void toproller(){
+  
+  rollerout = controller2.getRawAxis(2);
+  
+  if(rollerout >= 0.1 ){
+  
+    trolleyPrt.set(ControlMode.PercentOutput,0.75);
+    
+    
+  
+  
+  }
+  else{
+  
+    trolleyPrt.set(ControlMode.PercentOutput,0);
+    
+  
+  }
+  
+  
+  }
+  
 
 
 
@@ -437,9 +502,62 @@ else{
   @Override
   public void autonomousInit() {
     m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
+    m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+    m_autoSelected=m_chooser.getSelected();
+    System.out.println("Auto Selected: "+m_autoSelected);
 
+    //check if it needs to be initialized here or not 
+    timer = new Timer();
+
+    timer.reset();
+    timer.start();
+
+
+      if(timer.get() <=9 &&timer.get() == 3 || timer.get() <=9 &&timer.get() == 6 || timer.get() <=9 &&timer.get() == 9){
+
+        trolleyPrt.set(ControlMode.PercentOutput,0.75);
+        convey1.set(ControlMode.PercentOutput,0.5);
+        convey2.set(ControlMode.PercentOutput,0.5);
+        shtrLeft.set(ControlMode.PercentOutput,1);
+        shtrRight.set(ControlMode.PercentOutput,-1);
+        
+	
+      }
+
+      else if(timer.get() >=  10 && timer.get() < 15){
+
+        rearLeft.set(ControlMode.PercentOutput,.75);
+        frontLeft.set(ControlMode.PercentOutput,.75);
+    
+        rearRight.set(ControlMode.PercentOutput,-.75);
+        frontRight.set(ControlMode.PercentOutput,-.75);
+
+      }
+
+      else{
+
+        trolleyPrt.set(ControlMode.PercentOutput,0);
+        convey1.set(ControlMode.PercentOutput,0);
+        convey2.set(ControlMode.PercentOutput,0);
+        shtrLeft.set(ControlMode.PercentOutput,0);
+        shtrRight.set(ControlMode.PercentOutput,0);
+
+        
+		    rearLeft.set(ControlMode.PercentOutput,0);
+		    frontLeft.set(ControlMode.PercentOutput,0);
+
+		     rearRight.set(ControlMode.PercentOutput,0);
+		     frontRight.set(ControlMode.PercentOutput,0);
+      }
+
+
+
+
+
+
+
+    
 
 
   }
@@ -451,22 +569,26 @@ else{
   public void autonomousPeriodic() {
     switch (m_autoSelected) {
       case kCustomAuto:
-        // Put custom auto code here
+      break;
+
+      
+    case kDefaultAuto:
+    default:
+    break;
+}
 
 
 
 
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
+}
+  
 
 
 
 
-        break;
-    }
-  }
+
+    
+  
 
   /**
    * This function is called periodically during operator control.
@@ -475,10 +597,12 @@ else{
   public void teleopPeriodic() {
     drive();
     climbsys();
-    trolley();
+    //trolley();
+    toproller();
     unicorn();
     shooter();
-    intakeSytm();//sorry to make a procedure name so similar to another variable name
+    roller();
+    conveytor();
   }
 
   /**
@@ -488,9 +612,11 @@ else{
   public void testPeriodic() {
     drive();
     climbsys();
-    trolley();
+    //trolley();
+    toproller();
     unicorn();
     shooter();
-    intakeSytm();
+    roller();
+    conveytor();
   }
 }
